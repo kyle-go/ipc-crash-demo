@@ -56,7 +56,9 @@ const createFirstWindow = () => {
 
   firstWindow = new BrowserWindow(options);
   remoteMain.enable(firstWindow.webContents);
-  firstWindow.loadURL(path.join(__dirname, '../../assets/first.html'));
+  firstWindow.loadURL(
+    `file://${path.join(__dirname, '../../assets/first.html')}`
+  );
 
   firstWindow.setAlwaysOnTop(true, 'screen-saver');
   firstWindow.setVisibleOnAllWorkspaces(true);
@@ -84,7 +86,7 @@ const createSecondWindow = () => {
       nodeIntegration: false,
       nodeIntegrationInWorker: false,
       contextIsolation: false,
-      preload: path.join(__dirname, 'assets/second_preload.js'),
+      preload: path.join(__dirname, '../../assets/second_preload.js'),
       nativeWindowOpen: true,
       enableRemoteModule: true,
       sandbox: false,
@@ -97,7 +99,9 @@ const createSecondWindow = () => {
   // @ts-ignore
   secondWindow = new BrowserWindow(options);
 
-  secondWindow.loadURL('./assets/second.html');
+  secondWindow.loadURL(
+    `file://${path.join(__dirname, '../../assets/second.html')}`
+  );
 
   // secondWindow.on('close', (e: { preventDefault: () => void }) => {
   //   if (secondWindowSystemClose) {
@@ -111,6 +115,8 @@ const createSecondWindow = () => {
       firstWindow.hide();
     }
   });
+
+  secondWindow.webContents.openDevTools();
 };
 
 ipcMain.on('ipc-example', async (_, arg) => {
@@ -121,7 +127,7 @@ ipcMain.on('ipc-example', async (_, arg) => {
 
   // create browserWindows
   createFirstWindow();
-  // createSecondWindow();
+  createSecondWindow();
 
   setTimeout(() => {
     if (secondWindow) {

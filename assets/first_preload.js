@@ -1,1 +1,1 @@
-console.log('first_preload.js loaded');
+console.error('first_preload.js loaded');
