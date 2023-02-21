@@ -25,10 +25,109 @@ class AppUpdater {
 
 let mainWindow: BrowserWindow | null = null;
 
-ipcMain.on('ipc-example', async (event, arg) => {
-  const msgTemplate = (pingPong: string) => `IPC test: ${pingPong}`;
-  console.log(msgTemplate(arg));
-  event.reply('ipc-example', msgTemplate('pong'));
+const remoteMain = require('@electron/remote/main');
+
+remoteMain.initialize();
+
+let firstWindow: any;
+const createFirstWindow = () => {
+  const options = {
+    width: 600,
+    height: 300,
+    show: true,
+    webPreferences: {
+      nodeIntegration: false,
+      nodeIntegrationInWorker: false,
+      contextIsolation: false,
+      preload: path.join(__dirname, '../../assets/first_preload.js'),
+      nativeWindowOpen: true,
+      enableRemoteModule: true,
+      sandbox: false,
+    },
+    // resizable: true,
+    // minimizable: false,
+    // maximizable: false,
+    acceptFirstMouse: true,
+    movable: true,
+    alwaysOnTop: true,
+    // fullscreenable: false,
+    // frame: false,
+  };
+
+  firstWindow = new BrowserWindow(options);
+  remoteMain.enable(firstWindow.webContents);
+  firstWindow.loadURL(path.join(__dirname, '../../assets/first.html'));
+
+  firstWindow.setAlwaysOnTop(true, 'screen-saver');
+  firstWindow.setVisibleOnAllWorkspaces(true);
+
+  firstWindow.on('closed', () => {
+    firstWindow = null;
+  });
+  firstWindow.webContents.openDevTools();
+};
+
+// eslint-disable-next-line no-unused-vars
+let secondWindow: any;
+// let secondWindowSystemClose = true;
+
+const createSecondWindow = () => {
+  const options = {
+    width: 600,
+    height: 300,
+    minWidth: 1024,
+    minHeight: 768,
+    autoHideMenuBar: true,
+    backgroundColor: '#181A20',
+    show: true,
+    webPreferences: {
+      nodeIntegration: false,
+      nodeIntegrationInWorker: false,
+      contextIsolation: false,
+      preload: path.join(__dirname, 'assets/second_preload.js'),
+      nativeWindowOpen: true,
+      enableRemoteModule: true,
+      sandbox: false,
+    },
+    acceptFirstMouse: true,
+    // fullscreenable: false,
+    // titleBarStyle: 'hidden',
+  };
+
+  // @ts-ignore
+  secondWindow = new BrowserWindow(options);
+
+  secondWindow.loadURL('./assets/second.html');
+
+  // secondWindow.on('close', (e: { preventDefault: () => void }) => {
+  //   if (secondWindowSystemClose) {
+  //     e.preventDefault();
+  //     secondWindow.webContents.send('system-close');
+  //   }
+  // });
+
+  secondWindow.on('closed', () => {
+    if (firstWindow) {
+      firstWindow.hide();
+    }
+  });
+};
+
+ipcMain.on('ipc-example', async (_, arg) => {
+  console.log(arg);
+  // const msgTemplate = (pingPong: string) => `IPC test: ${pingPong}`;
+  // console.log(msgTemplate(arg));
+  // event.reply('ipc-example', msgTemplate('pong'));
+
+  // create browserWindows
+  createFirstWindow();
+  // createSecondWindow();
+
+  setTimeout(() => {
+    if (secondWindow) {
+      secondWindow.webContents.send('want-close');
+    }
+  }, 3000);
 });
 
 if (process.env.NODE_ENV === 'production') {
