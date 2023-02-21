@@ -80,7 +80,7 @@ const createSecondWindow = () => {
     minWidth: 1024,
     minHeight: 768,
     autoHideMenuBar: true,
-    backgroundColor: '#181A20',
+    // backgroundColor: '#181A20',
     show: true,
     webPreferences: {
       nodeIntegration: false,
